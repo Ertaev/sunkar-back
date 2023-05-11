@@ -3,9 +3,9 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { User } = require("../models/models");
 
-const generateJwt = (id, phone, email, role) => {
+const generateJwt = (id, phone, IIN, email, name, surname, birthday, role) => {
   return jwt.sign(
-    { id, phone, email, role },
+    { id, phone, IIN, email, name, surname, birthday, role },
     process.env.SECRET_KEY,
     { expiresIn: "24h" }
   )
@@ -13,13 +13,13 @@ const generateJwt = (id, phone, email, role) => {
 
 class UserController {
   async registration(req, res, next) {
-    const { email, phone, password, role } = req.body;
+    const { email, phone, IIN, password, name = "", surname = "", birthday = null, role } = req.body;
 
-    if (!email || !phone || !password) {
-      return next(ApiError.badRequest("Некорректные данные"));
+    if (!email || !IIN || !phone || !password) {
+      return next(ApiError.badRequest("Заполните все поля"));
     }
 
-    const candidate = await User.findOne({ where: { email } });
+    let candidate = await User.findOne({ where: { email } });
 
     if (candidate) {
       return next(
@@ -27,9 +27,25 @@ class UserController {
       );
     }
 
+    candidate = await User.findOne({ where: { phone } });
+
+    if (candidate) {
+      return next(
+        ApiError.badRequest("Пользователь с таким телефоном уже существует")
+      );
+    }
+
+    candidate = await User.findOne({ where: { IIN } });
+
+    if (candidate) {
+      return next(
+        ApiError.badRequest("Пользователь с таким ИИН уже существует")
+      );
+    }
+
     const hashPassword = await bcrypt.hash(password, 5);
-    const user = await User.create({ email, phone, role, password: hashPassword });
-    const token = generateJwt(user.id, user.phone, user.email, user.role);
+    const user = await User.create({ email, phone, IIN, name, surname, birthday, role, password: hashPassword });
+    const token = generateJwt(user.id, user.phone, user.IIN, user.email, user.name, user.surname, user.birthday, user.role);
 
     return res.json({token})
   }
@@ -38,25 +54,76 @@ class UserController {
     const {email, password} = req.body
     const user = await User.findOne({ where: { email } })
     if (!user) {
-      return next(ApiError.internal("Пользователь не найден"))
+      return next(ApiError.badRequest("Пользователь не найден"))
     }
 
     let comparePassword = bcrypt.compareSync(password, user.password)
     if (!comparePassword) {
-      return next(ApiError.internal("Указан неверный пароль"))
+      return next(ApiError.badRequest("Указан неверный пароль"))
     }
 
-    const token = generateJwt(user.id, user.phone, user.email, user.role)
+    const token = generateJwt(user.id, user.phone, user.IIN, user.email, user.name, user.surname, user.birthday, user.role)
     return res.json({token})
   }
 
   async check(req, res, next) {
-    const { id } = req.query;
+    try {
+      const { email } = req.user
+      const user = await User.findOne({ where: { email } })
 
-    if (!id) {
-      return next(ApiError.badRequest("Нет id"));
+      const token = generateJwt(user.id, user.phone, user.IIN, user.email, user.name, user.surname, user.birthday, user.role)
+      
+      return res.json({ token })
+    } catch (error) {
+      next()
     }
-    res.json(id);
+  }
+
+  async update(req, res, next) {
+    try {
+      const { name, surname, birthday } = req.body;
+      const { email } = req.query.email
+
+      if (name) {
+        await User.findOne({
+          where: { email }
+        }).then(data => {
+          data.update({
+            name: name,
+          })
+        })
+        console.log("first if");
+      }
+
+      if (surname) {
+        await User.findOne({
+          where: { email }
+        }).then(data => {
+          data.update({
+            surname: surname,
+          })
+        })
+        console.log("second if");
+      }
+
+      if (birthday !== null) {
+        await User.findOne({
+          where: { email }
+        }).then(data => {
+          data.update({
+            birthday: birthday,
+          })
+        })
+        console.log("third if", birthday);
+      }
+
+      const user = await User.findOne({ where: { email } })
+
+      const token = generateJwt(user.id, user.phone, user.IIN, user.email, user.name, user.surname, birthday, user.role);
+      return res.json({token})
+    } catch (error) {
+      next()
+    }
   }
 }
 
