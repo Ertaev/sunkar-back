@@ -1,7 +1,7 @@
 const ApiError = require("../error/ApiError");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { User } = require("../models/models");
+const { User, Application } = require("../models/models");
 
 const generateJwt = (id, phone, IIN, email, name, surname, birthday, role) => {
   return jwt.sign(
@@ -92,7 +92,14 @@ class UserController {
             name: name,
           })
         })
-        console.log("first if");
+
+        await Application.findOne({
+          where: { email }
+        }).then(data => {
+          data.update({
+            name: name,
+          })
+        })
       }
 
       if (surname) {
@@ -103,7 +110,14 @@ class UserController {
             surname: surname,
           })
         })
-        console.log("second if");
+
+        await Application.findOne({
+          where: { email }
+        }).then(data => {
+          data.update({
+            surname: surname,
+          })
+        })
       }
 
       if (birthday !== null) {
@@ -114,7 +128,6 @@ class UserController {
             birthday: birthday,
           })
         })
-        console.log("third if", birthday);
       }
 
       const user = await User.findOne({ where: { email } })

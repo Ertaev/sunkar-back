@@ -15,6 +15,9 @@ const User = sequelize.define("user", {
 
 const Application = sequelize.define("application", {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  name: {type: DataTypes.STRING},
+  surname: {type: DataTypes.STRING},
+  IIN: {type: DataTypes.STRING, unique: true},
   email: {type: DataTypes.STRING},
   monthly_payment: {type: DataTypes.FLOAT},
   total: {type: DataTypes.FLOAT},

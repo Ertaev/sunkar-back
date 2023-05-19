@@ -6,5 +6,6 @@ router.post("/apply", applicationController.apply);
 router.post("/updateApply", applicationController.updateApply);
 router.get("/checkApply", applicationController.checkApply);
 router.get("/getApply", applicationController.getApply);
+router.post("/updateStatusApply", applicationController.updateStatusApply)
 
 module.exports = router;

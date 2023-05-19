@@ -1,16 +1,16 @@
 const ApiError = require("../error/ApiError");
-const { Application } = require("../models/models");
+const { Application, User } = require("../models/models");
 const uuid = require("uuid")
 const path = require("path")
 
 class ApplicationController {
   async apply (req, res, next) {
     try {
-      const { monthly_payment, total, overpayment, sum, month, status, email } = req.body;
+      const { monthly_payment, total, overpayment, sum, month, email, name = null, surname = null } = req.body;
 
-      const application = await Application.create({ email, monthly_payment, total, overpayment, sum, month, status });
+      const application = await Application.create({ email, monthly_payment, total, overpayment, sum, month, name, surname });
   
-      return res.json("nice try")
+      return res.json(application)
     } catch (error) {
       next()      
     }
@@ -32,8 +32,10 @@ class ApplicationController {
 
   async updateApply (req, res, next) {
     try {
-      const { salary, email } = req.body
+      const { salary, email, name, surname, IIN } = req.body
       const { img1, img2 } = req.files
+
+      console.log("body:", req.body);
 
       if (img1) {
         var fileName1 = uuid.v4() + ".jpg"
@@ -45,6 +47,44 @@ class ApplicationController {
         img2.mv(path.resolve(__dirname, "..", "static/", fileName2))
       }
 
+      if (name) {
+        await Application.findOne({ 
+          where: { email },
+          order: [['createdAt', 'DESC']]
+        }).then(data => {
+          data.update({
+            name
+          })
+        })
+
+        await User.findOne({ 
+          where: { email },
+        }).then(data => {
+          data.update({
+            name
+          })
+        })
+      }
+
+      if (surname) {
+        await Application.findOne({ 
+          where: { email },
+          order: [['createdAt', 'DESC']]
+        }).then(data => {
+          data.update({
+            surname
+          })
+        })
+
+        await User.findOne({ 
+          where: { email },
+        }).then(data => {
+          data.update({
+            surname
+          })
+        })
+      }
+
       const application = await Application.findOne({ 
         where: { email },
         order: [['createdAt', 'DESC']]
@@ -53,6 +93,7 @@ class ApplicationController {
           docImg1: fileName1,
           docImg2: fileName2,
           salary: salary,
+          IIN
         })
       })
 
@@ -64,13 +105,35 @@ class ApplicationController {
 
   async getApply (req, res, next) {
     try {
-      const application = await Application.findAll({
+      const applications = await Application.findAll({
         where: {
           status: "WAIT"
         }
       })
 
-      // console.log(application);
+      for (const application of applications) {
+        console.log(application.dataValues.email);
+      }
+
+      return res.json(applications)
+    } catch (error) {
+      next()
+    }
+  }
+
+  async updateStatusApply (req, res, next) {
+    try {
+      const { id, status } = req.body.params
+
+      const application = await Application.findOne({
+        where: {
+          id
+        }
+      }).then(data => {
+        data.update({
+          status,
+        })
+      })
 
       return res.json(application)
     } catch (error) {
