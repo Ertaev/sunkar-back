@@ -4,9 +4,11 @@ const path = require("path")
 
 const userRouter = require("./userRouter")
 const applicationRouter = require("./applicationRouter")
+const callbackRouter = require("./callbackRouter")
 
 router.use("/user", userRouter)
 router.use("/application", applicationRouter)
+router.use("/callback", callbackRouter)
 
 router.get('/static/:filename', (req, res) => {
   const fileName = req.params.filename;

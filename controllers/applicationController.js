@@ -35,8 +35,6 @@ class ApplicationController {
       const { salary, email, name, surname, IIN } = req.body
       const { img1, img2 } = req.files
 
-      console.log("body:", req.body);
-
       if (img1) {
         var fileName1 = uuid.v4() + ".jpg"
         img1.mv(path.resolve(__dirname, "..", "static/", fileName1))
@@ -93,7 +91,7 @@ class ApplicationController {
           docImg1: fileName1,
           docImg2: fileName2,
           salary: salary,
-          IIN
+          IIN,
         })
       })
 
@@ -123,7 +121,7 @@ class ApplicationController {
 
   async updateStatusApply (req, res, next) {
     try {
-      const { id, status } = req.body.params
+      const { id, status, comment } = req.body.params
 
       const application = await Application.findOne({
         where: {
@@ -132,6 +130,7 @@ class ApplicationController {
       }).then(data => {
         data.update({
           status,
+          comment
         })
       })
 

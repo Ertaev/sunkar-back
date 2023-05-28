@@ -28,6 +28,7 @@ const Application = sequelize.define("application", {
   docImg1: {type: DataTypes.STRING},
   docImg2: {type: DataTypes.STRING},
   salary: {type: DataTypes.INTEGER},
+  comment: {type: DataTypes.STRING},
 })
 
 module.exports = {
