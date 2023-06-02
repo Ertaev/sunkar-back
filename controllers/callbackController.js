@@ -3,6 +3,8 @@ var nodemailer = require("nodemailer");
 class callbackController {
   async mail(req, res, next) {
     try {
+      const {name, phone, comment} = req.body
+
       var transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -17,17 +19,21 @@ class callbackController {
       var mailOptions = {
         from: "darhanertaev10@gmail.com",
         to: "darhanertaev10@gmail.com",
-        subject: "Аренда автомобиля",
-        text: `Ваш автомобиль хотят арендовать`,
+        subject: "Обратная связь",
+        text: `Пользователь: ${name ? name : "Аноним" } \n${comment} \nДля обратной связи: ${phone}`,
       };
 
       transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
+          console.log(error);
           return res.json(error);
         } else {
           return res.json("Заказ принят, и отправлен");
         }
       });
+
+      // transporter.sendMail(mailOptions);
+      // return res.json("Заказ принят, и отправлен");
     } catch (error) {
       next();
     }
