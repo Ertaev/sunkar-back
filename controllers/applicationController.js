@@ -6,9 +6,9 @@ const path = require("path")
 class ApplicationController {
   async apply (req, res, next) {
     try {
-      const { monthly_payment, total, overpayment, sum, month, email, name = null, surname = null } = req.body;
+      const { monthly_payment, total, overpayment, sum, month, email, name = null, surname = null, program, person, BIN } = req.body;
 
-      const application = await Application.create({ email, monthly_payment, total, overpayment, sum, month, name, surname });
+      const application = await Application.create({ email, monthly_payment, total, overpayment, sum, month, name, surname, program, person, BIN });
   
       return res.json(application)
     } catch (error) {
@@ -24,16 +24,20 @@ class ApplicationController {
         order: [['createdAt', 'DESC']] 
       })
 
-      return res.json(application)
+      if (application) {
+        return res.json(application)
+      }
+
+      return res.json("null")
     } catch (error) {
-      next()      
+      next()
     }
   }
 
   async updateApply (req, res, next) {
     try {
       const { salary, email, name, surname, IIN } = req.body
-      const { img1, img2 } = req.files
+      const { img1, img2, file } = req.files
 
       if (img1) {
         var fileName1 = uuid.v4() + ".jpg"
@@ -43,6 +47,11 @@ class ApplicationController {
       if (img2) {
         var fileName2 = uuid.v4() + ".jpg"
         img2.mv(path.resolve(__dirname, "..", "static/", fileName2))
+      }
+
+      if (file) {
+        var fileName = uuid.v4() + ".docx"
+        file.mv(path.resolve(__dirname, "..", "static/applicationDocs", fileName))
       }
 
       if (name) {
@@ -92,6 +101,7 @@ class ApplicationController {
           docImg2: fileName2,
           salary: salary,
           IIN,
+          file: fileName,
         })
       })
 
@@ -108,10 +118,6 @@ class ApplicationController {
           status: "WAIT"
         }
       })
-
-      for (const application of applications) {
-        console.log(application.dataValues.email);
-      }
 
       return res.json(applications)
     } catch (error) {

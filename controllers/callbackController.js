@@ -1,39 +1,39 @@
-var nodemailer = require("nodemailer");
+const { Mail } = require("../models/models");
 
 class callbackController {
   async mail(req, res, next) {
     try {
-      const {name, phone, comment} = req.body
+      const { name, phone, comment } = req.body;
 
-      var transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: "darhanertaev10@gmail.com",
-          pass: "dgevjyjfhdwydyth",
-        },
-        tls: {
-          rejectUnauthorized: false
-        }
+      const mail = await Mail.create({ name, phone, comment });
+
+      return res.json("Заказ принят, и отправлен");
+    } catch (error) {
+      next();
+    }
+  }
+
+  async getMail(req, res, next) {
+    try {
+      const allMail = await Mail.findAll();
+
+      return res.json(allMail);
+    } catch (error) {
+      next();
+    }
+  }
+
+  async deleteMail(req, res, next) {
+    try {
+      const { id } = req.body.params;
+ 
+      await Mail.findOne({
+        where: { id },
+      }).then((data) => {
+        data.destroy();
       });
 
-      var mailOptions = {
-        from: "darhanertaev10@gmail.com",
-        to: "darhanertaev10@gmail.com",
-        subject: "Обратная связь",
-        text: `Пользователь: ${name ? name : "Аноним" } \n${comment} \nДля обратной связи: ${phone}`,
-      };
-
-      transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-          console.log(error);
-          return res.json(error);
-        } else {
-          return res.json("Заказ принят, и отправлен");
-        }
-      });
-
-      // transporter.sendMail(mailOptions);
-      // return res.json("Заказ принят, и отправлен");
+      return res.json("DONE");
     } catch (error) {
       next();
     }

@@ -29,8 +29,34 @@ const Application = sequelize.define("application", {
   docImg2: {type: DataTypes.STRING},
   salary: {type: DataTypes.INTEGER},
   comment: {type: DataTypes.STRING},
+  program: {type: DataTypes.STRING},
+  person: {type: DataTypes.STRING, defaultValue: ""},
+  BIN: {type: DataTypes.STRING, unique: true},
+  file: {type: DataTypes.STRING},
+})
+
+const Mail = sequelize.define("mail", {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  name: {type: DataTypes.STRING, defaultValue: ""},
+  phone: {type: DataTypes.STRING, unique: true},
+  comment: {type: DataTypes.STRING, defaultValue: ""},
+})
+
+const Evaluation = sequelize.define("evaluation", {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  name: {type: DataTypes.STRING},
+  surname: {type: DataTypes.STRING},
+  phone: {type: DataTypes.STRING},
+  exit: {type: DataTypes.BOOLEAN},
+  unique: {type: DataTypes.STRING, defaultValue: "" },
+})
+
+const Document = sequelize.define("document", {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  unique: {type: DataTypes.STRING},
+  path: {type: DataTypes.STRING},
 })
 
 module.exports = {
-  User, Application
+  User, Application, Mail, Evaluation, Document
 }
